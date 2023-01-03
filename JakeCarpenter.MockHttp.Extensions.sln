@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JakeCarpenter.MockHttp.Extensions", "src\JakeCarpenter.MockHttp.Extensions\JakeCarpenter.MockHttp.Extensions.csproj", "{6C87DE9B-5180-4EC9-BD69-CDF0AF59CDA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JakeCarpenter.MockHttp.Extensions.Tests", "tests\JakeCarpenter.MockHttp.Extensions.Tests\JakeCarpenter.MockHttp.Extensions.Tests.csproj", "{25846CD0-D94C-4198-B410-76946164E2E3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6C87DE9B-5180-4EC9-BD69-CDF0AF59CDA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C87DE9B-5180-4EC9-BD69-CDF0AF59CDA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C87DE9B-5180-4EC9-BD69-CDF0AF59CDA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C87DE9B-5180-4EC9-BD69-CDF0AF59CDA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25846CD0-D94C-4198-B410-76946164E2E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25846CD0-D94C-4198-B410-76946164E2E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25846CD0-D94C-4198-B410-76946164E2E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25846CD0-D94C-4198-B410-76946164E2E3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6C87DE9B-5180-4EC9-BD69-CDF0AF59CDA1} = {D7284AF4-F66E-4720-8D63-6569B469762B}
+		{25846CD0-D94C-4198-B410-76946164E2E3} = {85AF7F05-ADBE-48EE-8C48-86F402CC5382}
+	EndGlobalSection
+EndGlobal
