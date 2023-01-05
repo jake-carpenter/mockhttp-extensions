@@ -1,73 +1,53 @@
 using System.Text.Json;
+using System.Text.Json.JsonDiffPatch;
 using RichardSzalay.MockHttp;
+using System.Text.Json.Nodes;
 
 namespace JakeCarpenter.MockHttp.Extensions;
 
 public class JsonPropertyMatcher : IMockedRequestMatcher
 {
-    private readonly JsonDocument _expected;
+    private readonly JsonNode? _expectedNode;
 
     public JsonPropertyMatcher(object value)
     {
         var json = JsonSerializer.Serialize(value);
-        _expected = JsonDocument.Parse(json);
+        _expectedNode = JsonNode.Parse(json);
     }
 
     public bool Matches(HttpRequestMessage message)
     {
-        var json = message.Content.ReadAsStringAsync().Result;
-        var requestJsonDoc = JsonDocument.Parse(json);
+        if (message.Content is null)
+            return false;
 
-        foreach (var expectedProperty in _expected.RootElement.EnumerateObject())
+        var json = message.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+        var requestElement = JsonDocument.Parse(json).RootElement;
+
+        return (_expectedNode, requestElement.ValueKind) switch
         {
-            if (!requestJsonDoc.RootElement.TryGetProperty(expectedProperty.Name, out var matchedJsonElement))
+            (JsonObject expected, JsonValueKind.Object) => DoesObjectContainExpected(requestElement, expected),
+            (JsonArray expected, JsonValueKind.Array) => DoesArrayContainExpected(requestElement, expected),
+            _ => false
+        };
+    }
+
+    private static bool DoesArrayContainExpected(JsonElement requestElement, JsonArray expected)
+    {
+        var requestedNode = JsonSerializer.SerializeToNode(requestElement);
+        return expected.DeepEquals(requestedNode);
+    }
+
+    private static bool DoesObjectContainExpected(JsonElement requestElement, JsonObject expected)
+    {
+        foreach (var (key, value) in expected)
+        {
+            if (!requestElement.TryGetProperty(key, out var matchedValue))
                 return false;
 
-            if (matchedJsonElement.ValueKind != expectedProperty.Value.ValueKind)
-                return false;
-
-            if (!DoTheSwitch(matchedJsonElement, expectedProperty))
+            if (!JsonSerializer.SerializeToNode(matchedValue).DeepEquals(value))
                 return false;
         }
 
         return true;
     }
-
-    private static bool DoTheSwitch(JsonElement requestElement, JsonProperty expectedProperty)
-    {
-        switch (expectedProperty.Value.ValueKind)
-        {
-            case JsonValueKind.String:
-                return IsStringMatch(requestElement, expectedProperty);
-
-            case JsonValueKind.Number:
-                return IsNumericMatch(requestElement, expectedProperty);
-
-            case JsonValueKind.True:
-            case JsonValueKind.False:
-                return IsBooleanMatch(requestElement, expectedProperty);
-
-            case JsonValueKind.Null:
-                return IsNullMatch(requestElement, expectedProperty);
-
-            case JsonValueKind.Undefined:
-            case JsonValueKind.Object:
-            case JsonValueKind.Array:
-            default:
-                throw new ArgumentException($"Case has not been coded for: {expectedProperty.Value.ValueKind}");
-        }
-    }
-
-    private static bool IsStringMatch(JsonElement requestElement, JsonProperty expectedProperty) =>
-        requestElement.GetString() == expectedProperty.Value.GetString();
-
-    private static bool IsNumericMatch(JsonElement requestElement, JsonProperty expectedProperty) =>
-        requestElement.GetDecimal() == expectedProperty.Value.GetDecimal();
-
-    private static bool IsBooleanMatch(JsonElement requestElement, JsonProperty expectedProperty) =>
-        requestElement.GetBoolean() == expectedProperty.Value.GetBoolean();
-
-    private static bool IsNullMatch(JsonElement requestElement, JsonProperty expectedProperty) =>
-        requestElement.ValueKind == JsonValueKind.Null && requestElement.GetString() == null &&
-        expectedProperty.Value.GetString() == null;
 }

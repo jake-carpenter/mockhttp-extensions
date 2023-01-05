@@ -5,6 +5,16 @@ namespace JakeCarpenter.MockHttp.Extensions.Tests;
 
 public class JsonPropertyMatcherTests
 {
+    [Fact(DisplayName = "False when request message has no content")]
+    public void FalseWhenRequestMessageHasNoContent()
+    {
+        using var msg = new HttpRequestMessage(HttpMethod.Post, "http://localhost");
+
+        var result = GetSut(new { }).Matches(msg);
+
+        result.ShouldBeFalse();
+    }
+
     [Theory(DisplayName = "False when the expected property does not exist in a single property request")]
     [InlineData("b")]
     [InlineData(1)]
@@ -58,6 +68,31 @@ public class JsonPropertyMatcherTests
 
         result.ShouldBeFalse();
     }
+
+    [Fact(DisplayName = "False when an array property does not have all expected values")]
+    public void ArrayPropertyDoesNotHaveAllValuesNoMatch()
+    {
+        var expected = new { a = new[] { 1, 2, 3 } };
+        const string json = """{"a":[1,2]}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "False when an array property does not have matching values")]
+    public void ArrayPropertyDoesNotHaveMatchingValuesNoMatch()
+    {
+        var expected = new { a = new[] { 1, 2, 3 } };
+        const string json = """{"a":[1,2,10]}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeFalse();
+    }
+
 
     [Fact(DisplayName = "True when matching an empty object type")]
     public void TrueEmptyObject()
@@ -171,6 +206,70 @@ public class JsonPropertyMatcherTests
         var result = GetSut(expected).Matches(msg);
 
         result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "False when expected JSON is an array on a request with object")]
+    public void FalseExpectArrayGotObject()
+    {
+        var expected = new[] { 1, 2, 3 };
+        const string json = """{"a":1}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "False when expected JSON is an object on a request with array")]
+    public void FalseExpectObjectGotArray()
+    {
+        var expected = new { a = 1 };
+        const string json = "[1,2,3]";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact(DisplayName = "False when expected JSON array does not match request array")]
+    public void FalseArrayNoMatch()
+    {
+        var expected = new[] { 1, 2, 3 };
+        const string json = """[1,2]""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeFalse();
+    }
+
+    [Theory(DisplayName = "True when expected JSON array matches request")]
+    [InlineData(1, 2, 3, "[1,2,3]")]
+    [InlineData(1.9, 2.8, 3.7, "[1.9,2.8,3.7]")]
+    [InlineData("a", "b", "c", """["a","b","c"]""")]
+    [InlineData(true, false, true, """[true,false,true]""")]
+    [InlineData(null, null, null, """[null,null,null]""")]
+    public void TrueNumericArray(object a, object b, object c, string json)
+    {
+        var expected = new[] { a, b, c };
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "False when expected property is an object that does not match the request property")]
+    public void FalseObjectPropertyNoMatch()
+    {
+        var expected = new { a = new { b = 1 } };
+        const string json = """{"a":{"b":2}}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeFalse();
     }
 
     private static HttpRequestMessage CreateRequest(string json)
