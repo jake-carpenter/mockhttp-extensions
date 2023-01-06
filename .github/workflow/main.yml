@@ -2,9 +2,9 @@ name: Publish to NuGet
 
 on:
   push:
-    branches: [ "action" ]
+    branches: [ "actions" ]
   pull_request:
-    branches: [ "action" ]
+    branches: [ "actions" ]
 
 jobs:
   build:
