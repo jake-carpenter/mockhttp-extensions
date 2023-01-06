@@ -9,10 +9,11 @@ public class JsonPropertyMatcher : IMockedRequestMatcher
 {
     private readonly JsonNode? _expectedNode;
 
+    private static readonly JsonNodeOptions NodeOptions = new() { PropertyNameCaseInsensitive = true };
+
     public JsonPropertyMatcher(object value)
     {
-        var json = JsonSerializer.Serialize(value);
-        _expectedNode = JsonNode.Parse(json);
+        _expectedNode = JsonSerializer.SerializeToNode(value);
     }
 
     public bool Matches(HttpRequestMessage message)
@@ -21,30 +22,29 @@ public class JsonPropertyMatcher : IMockedRequestMatcher
             return false;
 
         var json = message.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-        var requestElement = JsonDocument.Parse(json).RootElement;
+        var requestNode = JsonNode.Parse(json, NodeOptions);
 
-        return (_expectedNode, requestElement.ValueKind) switch
+        return (requestNode, _expectedNode) switch
         {
-            (JsonObject expected, JsonValueKind.Object) => DoesObjectContainExpected(requestElement, expected),
-            (JsonArray expected, JsonValueKind.Array) => DoesArrayContainExpected(requestElement, expected),
+            (JsonObject req, JsonObject exp) => DoesObjectContainExpected(req, exp),
+            (JsonArray req, JsonArray exp) => DoesArrayContainExpected(req, exp),
             _ => false
         };
     }
 
-    private static bool DoesArrayContainExpected(JsonElement requestElement, JsonArray expected)
+    private static bool DoesArrayContainExpected(JsonNode request, JsonNode expected)
     {
-        var requestedNode = JsonSerializer.SerializeToNode(requestElement);
-        return expected.DeepEquals(requestedNode);
+        return expected.DeepEquals(request, JsonElementComparison.Semantic);
     }
 
-    private static bool DoesObjectContainExpected(JsonElement requestElement, JsonObject expected)
+    private static bool DoesObjectContainExpected(JsonObject request, JsonObject expected)
     {
         foreach (var (key, value) in expected)
         {
-            if (!requestElement.TryGetProperty(key, out var matchedValue))
+            if (!request.TryGetPropertyValue(key, out var matchedValue))
                 return false;
 
-            if (!JsonSerializer.SerializeToNode(matchedValue).DeepEquals(value))
+            if (!JsonSerializer.SerializeToNode(matchedValue).DeepEquals(value, JsonElementComparison.Semantic))
                 return false;
         }
 

@@ -272,6 +272,90 @@ public class JsonPropertyMatcherTests
         result.ShouldBeFalse();
     }
 
+    [Fact(DisplayName = "True when expected property name matches in a different case")]
+    public void TruePropertyNameCaseInsensitive()
+    {
+        var expected = new { a = 1 };
+        const string json = """{"A":1}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "True when expected string property value is semantically the same")]
+    public void TrueSemanticString()
+    {
+        var expected = new { a = "foo \u0026 bar" };
+        const string json = """{"a":"foo & bar"}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "True when expected numeric property value is semantically the same")]
+    public void TrueSemanticNumber()
+    {
+        var expected = new { a = 1 };
+        const string json = """{"a":1.0}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "True when expected date property value is semantically the same")]
+    public void TrueSemanticDate()
+    {
+        var expected = new { a = new DateTime(2020, 1, 1, 0, 0, 0) };
+        const string json = """{"a":"2020-01-01"}""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "True when expected string array value is semantically the same")]
+    public void TrueSemanticArrayString()
+    {
+        var expected = new[] { "foo \u0026 bar" };
+        const string json = """["foo & bar"]""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "True when expected numeric array value is semantically the same")]
+    public void TrueSemanticArrayNumber()
+    {
+        var expected = new[] { 1 };
+        const string json = "[1.0]";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
+    [Fact(DisplayName = "True when expected date array value is semantically the same")]
+    public void TrueSemanticArrayDate()
+    {
+        var expected = new[] { new DateTime(2020, 1, 1, 0, 0, 0) };
+        const string json = """["2020-01-01"]""";
+        using var msg = CreateRequest(json);
+
+        var result = GetSut(expected).Matches(msg);
+
+        result.ShouldBeTrue();
+    }
+
     private static HttpRequestMessage CreateRequest(string json)
     {
         var msg = new HttpRequestMessage(HttpMethod.Post, "http://localhost");
