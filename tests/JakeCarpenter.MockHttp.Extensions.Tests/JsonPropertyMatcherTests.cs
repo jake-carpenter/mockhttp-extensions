@@ -363,8 +363,8 @@ public class JsonPropertyMatcherTests
         return msg;
     }
 
-    private JsonPropertyMatcher GetSut(object expected)
+    private PartialJsonMatcher GetSut(object expected)
     {
-        return new JsonPropertyMatcher(expected);
+        return new PartialJsonMatcher(expected);
     }
 }

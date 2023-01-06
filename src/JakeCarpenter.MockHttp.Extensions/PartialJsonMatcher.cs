@@ -5,13 +5,13 @@ using System.Text.Json.Nodes;
 
 namespace JakeCarpenter.MockHttp.Extensions;
 
-public class JsonPropertyMatcher : IMockedRequestMatcher
+internal class PartialJsonMatcher : IMockedRequestMatcher
 {
     private readonly JsonNode? _expectedNode;
 
     private static readonly JsonNodeOptions NodeOptions = new() { PropertyNameCaseInsensitive = true };
 
-    public JsonPropertyMatcher(object value)
+    public PartialJsonMatcher(object value)
     {
         _expectedNode = JsonSerializer.SerializeToNode(value);
     }
