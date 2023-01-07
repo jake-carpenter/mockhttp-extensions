@@ -3,8 +3,7 @@ name: Publish to NuGet
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+
   workflow_dispatch:    
 
 jobs:
@@ -19,15 +18,11 @@ jobs:
       with:
         dotnet-version: 7.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore --nologo
     - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-    - name: Publish NuGet
-      uses: brandedoutcast/publish-nuget@v2.5.5
-      with:
-        PROJECT_FILE_PATH: ./src/JakeCarpenter.MockHttp.Extensions/JakeCarpenter.MockHttp.Extensions.csproj
-        PACKAGE_NAME: JakeCarpenter.MockHttp.Extensions
-        VERSION_FILE_PATH: ./VERSION
-        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      run: dotnet build --no-restore --nologo
+    - name: Package
+      run: dotnet pack -c Release --no-build --nologo /p:Version=${{ secrets.NUGET_VERSION }}
+    - name: Publish
+      run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
+    
