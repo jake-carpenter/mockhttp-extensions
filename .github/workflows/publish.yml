@@ -20,7 +20,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore --nologo
     - name: Build
-      run: dotnet build --no-restore --nologo
+      run: dotnet build -c Release --no-restore --nologo
     - name: Package
       run: dotnet pack -c Release --no-build --nologo /p:Version=${{ secrets.NUGET_VERSION }}
     - name: Publish
