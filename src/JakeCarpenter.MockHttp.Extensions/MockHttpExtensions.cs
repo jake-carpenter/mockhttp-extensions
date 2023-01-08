@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using RichardSzalay.MockHttp;
 
 namespace JakeCarpenter.MockHttp.Extensions;
@@ -18,5 +20,43 @@ public static class MockHttpExtensions
     public static MockedRequest WithPartialJson(this MockedRequest request, object value)
     {
         return request.With(new PartialJsonMatcher(value));
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="handler"></param>
+    /// <exception cref="HttpRequestException"></exception>
+    public static void UseFallbackWithRequestJson(this MockHttpMessageHandler handler)
+    {
+        handler.Fallback.Respond(
+            request =>
+            {
+                var reasonBuilder = new StringBuilder();
+                reasonBuilder
+                    .AppendLine("\n=========================")
+                    .Append(
+                        "A request was made to the following URL which did not match a request definition or expectation:\n")
+                    .Append(request.Method)
+                    .Append(' ')
+                    .AppendLine(request.RequestUri?.AbsoluteUri);
+                
+                if (request.Content is { Headers.ContentType.MediaType: "application/json" })
+                {
+                    var content = request.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+                    if (content.Length > 0)
+                    {
+                        var json = JsonDocument.Parse(content);
+                        var prettyJson = JsonSerializer.Serialize(
+                            json,
+                            new JsonSerializerOptions { WriteIndented = true });
+                        reasonBuilder.AppendLine("\nThe JSON body content was:").AppendLine(prettyJson).AppendLine();
+                    }
+                }
+
+                reasonBuilder.AppendLine("=========================");
+
+                throw new HttpRequestException(reasonBuilder.ToString());
+            });
     }
 }
