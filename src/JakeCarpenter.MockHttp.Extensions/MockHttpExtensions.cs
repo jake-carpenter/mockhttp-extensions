@@ -21,7 +21,7 @@ public static class MockHttpExtensions
     {
         return request.With(new PartialJsonMatcher(value));
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -40,7 +40,7 @@ public static class MockHttpExtensions
                     .Append(request.Method)
                     .Append(' ')
                     .AppendLine(request.RequestUri?.AbsoluteUri);
-                
+
                 if (request.Content is { Headers.ContentType.MediaType: "application/json" })
                 {
                     var content = request.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
@@ -58,5 +58,11 @@ public static class MockHttpExtensions
 
                 throw new HttpRequestException(reasonBuilder.ToString());
             });
+    }
+
+    public static void RespondWith(this MockedRequest request, Func<IResponseOptions, IResponseOptions> setup)
+    {
+        var options = setup(new ResponseOptions(request)) as ResponseOptions;
+        options?.Build();
     }
 }
