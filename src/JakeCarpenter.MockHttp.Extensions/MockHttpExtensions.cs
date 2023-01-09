@@ -65,4 +65,13 @@ public static class MockHttpExtensions
         var options = setup(new ResponseOptions(request)) as ResponseOptions;
         options?.Build();
     }
+
+    public static void RespondToAnyRequestWith(
+        this MockHttpMessageHandler messageHandler,
+        Func<IResponseOptions, IResponseOptions> setup)
+    {
+        var request = messageHandler.When("*");
+        var options = setup(new ResponseOptions(request)) as ResponseOptions;
+        options?.Build();
+    }
 }
