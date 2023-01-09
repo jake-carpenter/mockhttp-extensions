@@ -1,0 +1,69 @@
+using System.Net;
+using RichardSzalay.MockHttp;
+using Shouldly;
+
+namespace JakeCarpenter.MockHttp.Extensions.Tests;
+
+public class RespondToAnyRequestWithTests
+{
+    [Theory(DisplayName = "Request returns provided HTTP status code for any URL provided")]
+    [InlineData("https://foo.bar/", HttpStatusCode.OK)]
+    [InlineData("https://foo.bar/", HttpStatusCode.InternalServerError)]
+    [InlineData("https://google.com/", HttpStatusCode.Created)]
+    [InlineData("https://google.com/", HttpStatusCode.Unauthorized)]
+    [InlineData("https://betaws.mwi.internal/", HttpStatusCode.Forbidden)]
+    [InlineData("https://betaws.mwi.internal/", HttpStatusCode.NoContent)]
+    public async Task HttpStatus(string url, HttpStatusCode status)
+    {
+        var handler = new MockHttpMessageHandler();
+        var client = handler.ToHttpClient();
+        handler.RespondToAnyRequestWith(with => with.StatusCode(status));
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        var result = await client.SendAsync(request);
+
+        result.StatusCode.ShouldBe(status);
+    }
+
+    [Fact(DisplayName = "Request returns provided HTTP JSON object response")]
+    public async Task JsonBody()
+    {
+        var handler = new MockHttpMessageHandler();
+        var client = handler.ToHttpClient();
+        handler.RespondToAnyRequestWith(with => with.JsonObject(new { foo = "bar" }));
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://arbitrary.com");
+        var result = await client.SendAsync(request);
+
+        var json = await result.Content.ReadAsStringAsync();
+        json.ShouldBe("""{"foo":"bar"}""");
+    }
+
+    [Fact(DisplayName = "Request returns provided HTTP JSON string response")]
+    public async Task JsonString()
+    {
+        const string expectedJson = """{"foo":"bar"}""";
+        var handler = new MockHttpMessageHandler();
+        var client = handler.ToHttpClient();
+        handler.RespondToAnyRequestWith(with => with.JsonString(expectedJson));
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://arbitrary.com");
+        var result = await client.SendAsync(request);
+
+        var json = await result.Content.ReadAsStringAsync();
+        json.ShouldBe(json);
+    }
+
+    [Fact(DisplayName = "Request returns no body by default")]
+    public async Task NoBodyByDefault()
+    {
+        var handler = new MockHttpMessageHandler();
+        var client = handler.ToHttpClient();
+        handler.RespondToAnyRequestWith(with => with.StatusCode(HttpStatusCode.OK));
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://arbitrary.com");
+        var result = await client.SendAsync(request);
+
+        result.Content.Headers.ContentLength.ShouldBe(0);
+    }
+}
