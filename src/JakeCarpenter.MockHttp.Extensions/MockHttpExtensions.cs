@@ -23,10 +23,12 @@ public static class MockHttpExtensions
     }
 
     /// <summary>
-    /// 
+    /// Use a thrown exception as a fallback for when an HTTP request is made
+    /// which was not set up with the message handler. This fallback exception
+    /// includes the request method and URL, as well as the JSON body if
+    /// applicable. This overrides the default behavior of MockHttp returning
+    /// an HTTP 404.
     /// </summary>
-    /// <param name="handler"></param>
-    /// <exception cref="HttpRequestException"></exception>
     public static void UseFallbackWithRequestJson(this MockHttpMessageHandler handler)
     {
         handler.Fallback.Respond(
@@ -60,12 +62,24 @@ public static class MockHttpExtensions
             });
     }
 
+    /// <summary>
+    /// Allow a fluent interface for defining the response to an intercepted HTTP request.
+    /// Builds a request that includes an HTTP status 200 by default.
+    /// </summary>
+    /// <param name="request">Instance of MockHttp <see cref="MockedRequest" /></param>
+    /// <param name="setup">Lambda function allowing fluent access to response options.</param>
     public static void RespondWith(this MockedRequest request, Func<IResponseOptions, IResponseOptions> setup)
     {
         var options = setup(new ResponseOptions(request)) as ResponseOptions;
         options?.Build();
     }
 
+    /// <summary>
+    /// Allow a fluent interface for defining the response to an HTTP request with any URL.
+    /// Builds a request that includes an HTTP status 200 and matches a URL of "*" by default.
+    /// </summary>
+    /// <param name="messageHandler">Instance of MockHttp <see cref="MockHttpMessageHandler" /></param>
+    /// <param name="setup">Lambda function allowing fluent access to response options.</param>
     public static void RespondToAnyRequestWith(
         this MockHttpMessageHandler messageHandler,
         Func<IResponseOptions, IResponseOptions> setup)
