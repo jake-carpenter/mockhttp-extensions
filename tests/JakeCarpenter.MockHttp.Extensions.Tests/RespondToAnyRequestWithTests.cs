@@ -25,6 +25,19 @@ public class RespondToAnyRequestWithTests
         result.StatusCode.ShouldBe(status);
     }
 
+    [Fact(DisplayName = "Request returns HTTP OK by default")]
+    public async Task HttpResponse200Default()
+    {
+        var handler = new MockHttpMessageHandler();
+        var client = handler.ToHttpClient();
+        handler.RespondToAnyRequestWith(with => with);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://arbitrary.com");
+        var result = await client.SendAsync(request);
+
+        result.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
     [Fact(DisplayName = "Request returns provided HTTP JSON object response")]
     public async Task JsonBody()
     {
