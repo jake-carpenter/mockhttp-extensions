@@ -88,4 +88,11 @@ public static class MockHttpExtensions
         var options = setup(new ResponseOptions(request)) as ResponseOptions;
         options?.Build();
     }
+
+    public static MockedRequest ExpectPath(this MockHttpMessageHandler messageHandler, HttpMethod method, string path)
+    {
+        var uri = new Uri($"https://localhost/{path}");
+        var normalizedPath = uri.PathAndQuery.Replace("//", "/");
+        return messageHandler.Expect(method, $"*{normalizedPath}");
+    }
 }
