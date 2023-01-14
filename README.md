@@ -25,6 +25,20 @@ mockedRequest.WithPartialJson(new { a = "1", b = 2 });
 mockedRequest.WithPartialJson(new [] { 1, 2, 3 });
 ```
 
+## Request helpers
+
+### ExpectPath
+
+Equivalent to `Expect(method, "*" + path)`, adding a wildcard for everything before the path in a URI which allows SUT HTTP requests to go to an arbitrary host when not important.
+
+```csharp
+// use RichardSzalay.MockHttp HttpMessageHandler
+var handler = new MockHttpMessageHandler();
+
+// Expect a POST to /foo/bar on an unimportant host
+var mockedRequest = handler.ExpectPath(HttpMethod.Post, "/foo/bar").Respond(HttpStatusCode.OK);
+```
+
 ## Response helpers
 
 These extension methods are available for shorter setup for responses.
