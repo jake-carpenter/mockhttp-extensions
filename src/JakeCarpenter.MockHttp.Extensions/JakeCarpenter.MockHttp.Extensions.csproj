@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>JakeCarpenter.MockHttp.Extensions</PackageId>
@@ -11,6 +10,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Custom extensions for RichardSzalay.MockHttp including JSON matching</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <LangVersion>Latest</LangVersion>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
